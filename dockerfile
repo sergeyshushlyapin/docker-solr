@@ -4,6 +4,10 @@ FROM microsoft/windowsservercore
 
 SHELL ["powershell", "-NoProfile", "-Command", "$ErrorActionPreference = 'Stop';"]
 
+ARG SOLR_VERSION=6.6.1
+ENV SOLR_URI http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.zip
+ENV SOLR_WORKDIR /solr/solr-${SOLR_VERSION}
+
 # Download and install Java - Solr dependency
 RUN Invoke-WebRequest -Method Get -Uri http://javadl.oracle.com/webapps/download/AutoDL?BundleId=210185 -OutFile /jreinstaller.exe ; \
     Start-Process -FilePath C:\jreinstaller.exe -PassThru -wait -ArgumentList "/s,INSTALLDIR=c:\Java\jre" ; \
@@ -15,11 +19,11 @@ ENV JAVA_HOME c:\\Java\\jre
 RUN setx PATH '%PATH%;c:\\Java\\jre'
 
 # Download and extract Solr project files
-RUN Invoke-WebRequest -Method Get -Uri "http://archive.apache.org/dist/lucene/solr/6.6.1/solr-6.6.1.zip" -OutFile /solr.zip ; \
+RUN Invoke-WebRequest -Method Get -Uri ${env:SOLR_URI} -OutFile /solr.zip ; \
     Expand-Archive -Path /solr.zip -DestinationPath /solr ; \
     Remove-Item /solr.zip -Force
 
-WORKDIR "/solr/solr-6.6.1"
+WORKDIR ${SOLR_WORKDIR}
 
 EXPOSE 8983
 
